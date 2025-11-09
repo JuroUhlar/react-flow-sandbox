@@ -82,7 +82,6 @@ type RulesEditorProps = {
   deleteRule: (id: string) => void;
 };
 
-// Rules tab
 export const RulesCanvas = ({
   rules,
   selectedRuleId,
