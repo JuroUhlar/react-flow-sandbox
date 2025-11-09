@@ -1,7 +1,14 @@
 import "./App.css";
 import "@xyflow/react/dist/style.css";
-import '@xyflow/react/dist/base.css';
-import { ReactFlow, Background, Controls, type NodeProps } from "@xyflow/react";
+import "@xyflow/react/dist/base.css";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  type NodeProps,
+  Handle,
+  Position,
+} from "@xyflow/react";
 import {
   applyNodeChanges,
   applyEdgeChanges,
@@ -58,17 +65,31 @@ const nodeTypes = {
 };
 
 function RuleNode(props: NodeProps<RuleNode>) {
-  return <div className="bg-white p-2 rounded-md">
-    <b>IF</b>
-    <p>{props.data.expression}</p>
-    <b>THEN</b>
-    <p>{props.data.action}</p>
-    </div>;
+  const isSelected = props.selected;
+  
+  return (
+    <div 
+      className={`p-2 border-2 ${
+        isSelected 
+          ? "bg-blue-100 border-blue-500 shadow-lg" 
+          : "bg-white border-black"
+      }`}
+    >
+      <b>IF</b>
+      <p>{props.data.expression}</p>
+      <b>THEN</b>
+      <p>{props.data.action}</p>
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
 }
+
 
 const App = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const onNodesChange: OnNodesChange<AppNode> = useCallback(
     (changes) =>
@@ -81,15 +102,31 @@ const App = () => {
     []
   );
 
+  const onSelectionChange = useCallback(
+    (params: { nodes: AppNode[]; edges: Edge[] }) => {
+      // Track which node is selected (if any)
+      const selectedNode = params.nodes.find((node) => node.selected);
+      setSelectedNodeId(selectedNode?.id ?? null);
+    },
+    []
+  );
+
   return (
     <>
       <div style={{ height: "100vh", width: "100vw" }}>
+        {selectedNodeId && (
+          <div className="absolute top-4 left-4 z-10 bg-white p-2 border border-gray-300 rounded shadow">
+            Selected: {selectedNodeId}
+          </div>
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onSelectionChange={onSelectionChange}
           nodeTypes={nodeTypes}
+          fitView
         >
           <Background />
           <Controls />
