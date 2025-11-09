@@ -1,19 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// import "./App.css";
+import "./App.css";
 import "@xyflow/react/dist/style.css";
+import '@xyflow/react/dist/base.css';
 import { ReactFlow, Background, Controls, type NodeProps } from "@xyflow/react";
 import {
-  addEdge,
   applyNodeChanges,
   applyEdgeChanges,
   type Node,
   type Edge,
-  type FitViewOptions,
-  type OnConnect,
   type OnNodesChange,
   type OnEdgesChange,
-  type OnNodeDrag,
-  type DefaultEdgeOptions,
 } from "@xyflow/react";
 import { useCallback, useState } from "react";
 
@@ -42,7 +37,7 @@ type AppNode = RuleNode;
 
 const initialNodes: RuleNode[] = rules.map((rule, index) => ({
   id: rule.id,
-  position: { x: 0, y: index * 100 },
+  position: { x: index * 100, y: index * 100 },
   data: rule,
   type: "rule",
 }));
@@ -88,7 +83,6 @@ const App = () => {
 
   return (
     <>
-      {/* <h1>React Flow Sandbox</h1> */}
       <div style={{ height: "100vh", width: "100vw" }}>
         <ReactFlow
           nodes={nodes}
