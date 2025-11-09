@@ -39,6 +39,10 @@ export type Rule = {
         },
       ]);
     }, [rules]);
+
+    const deleteRule = useCallback((id: string) => {
+      setRules(rules.filter((rule) => rule.id !== id));
+    }, [rules]);
   
   
     return (
@@ -48,6 +52,7 @@ export type Rule = {
           selectedRuleId={selectedRuleId}
           setSelectedRuleId={setSelectedRuleId}
           addNewRule={addNewRule}
+          deleteRule={deleteRule}
         />
       </div>
     );

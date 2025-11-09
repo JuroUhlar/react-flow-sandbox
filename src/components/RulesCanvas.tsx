@@ -1,16 +1,17 @@
 import {
-    ReactFlow,
-    Background,
-    Controls,
-    type NodeProps,
-    Handle,
-    Position,
-  } from "@xyflow/react";
-  import { type Node, type Edge } from "@xyflow/react";
+  ReactFlow,
+  Background,
+  Controls,
+  type NodeProps,
+  Handle,
+  Position,
+  useReactFlow,
+} from "@xyflow/react";
+import { type Node, type Edge } from "@xyflow/react";
 import { useMemo } from "react";
 import type { Rule } from "./RulesTab";
 
-type RuleNodeComponent = Node<Rule, "rule">;
+type RuleNodeComponent = Node<Rule & { deleteRule: () => void }, "rule">;
 type NewRuleNodeComponent = Node<{ onClick?: () => void }, "newRuleButton">;
 type AppNode = RuleNodeComponent | NewRuleNodeComponent;
 
@@ -20,18 +21,33 @@ const nodeTypes = {
 };
 
 function RuleNodeComponent(props: NodeProps<RuleNodeComponent>) {
+  const { fitView } = useReactFlow();
+
   return (
     <div
-      className={`p-2 border-2 ${
+      className={`p-2 border-2 flex flex-row ${
         props.selected
           ? "bg-blue-100 border-blue-500 shadow-lg"
           : "bg-white border-black"
-      }`}
+      } gap-2`}
     >
-      <b>IF</b>
-      <p>{props.data.expression}</p>
-      <b>THEN</b>
-      <p>{props.data.action}</p>
+      <div className="flex flex-col gap-2">
+        <b>IF</b>
+        <p>{props.data.expression}</p>
+        <b>THEN</b>
+        <p>{props.data.action}</p>
+      </div>
+      <div>
+        <button
+          className="nopan"
+          onClick={() => {
+            props.data.deleteRule();
+            fitView();
+          }}
+        >
+          ❌
+        </button>
+      </div>
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </div>
@@ -39,16 +55,20 @@ function RuleNodeComponent(props: NodeProps<RuleNodeComponent>) {
 }
 
 function NewRuleNodeComponent(props: NodeProps<NewRuleNodeComponent>) {
+  const { fitView } = useReactFlow();
+
   return (
     <>
       <Handle type="target" position={Position.Top} />
-      <button 
-        className="focus:outline-none focus:ring-0 border-none nopan"
+      <button
+        // nopan prevents the button clicks from dragging canvas
+        className={`focus:outline-none focus:ring-0 border-none nopan`}
         onClick={() => {
           props.data.onClick?.();
+          fitView();
         }}
       >
-        New Rule
+        ➕ New Rule
       </button>
     </>
   );
@@ -59,24 +79,33 @@ type RulesEditorProps = {
   selectedRuleId: string | null;
   setSelectedRuleId: (id: string | null) => void;
   addNewRule: () => void;
+  deleteRule: (id: string) => void;
 };
 
 // Rules tab
-export const RulesCanvas = ({ rules, selectedRuleId, setSelectedRuleId, addNewRule }: RulesEditorProps) => {
-
-  const nodes: AppNode[] = useMemo(
-    () => [
+export const RulesCanvas = ({
+  rules,
+  selectedRuleId,
+  setSelectedRuleId,
+  addNewRule,
+  deleteRule,
+}: RulesEditorProps) => {
+  const nodes: AppNode[] = useMemo(() => {
+    return [
       ...rules.map((rule, index) => ({
         id: rule.id,
-        position: { x: 0, y: index * 150 },
-        data: rule,
+        position: { x: 0, y: index * 250 },
+        data: {
+          ...rule,
+          deleteRule: () => deleteRule(rule.id),
+        },
         type: "rule" as const,
         selected: rule.id === selectedRuleId,
         draggable: false, // Disable dragging on individual nodes
       })),
       {
         id: "newRuleButton",
-        position: { x: 0, y: rules.length * 150 },
+        position: { x: 0, y: rules.length * 250 },
         type: "newRuleButton" as const,
         selected: false,
         data: {
@@ -84,9 +113,8 @@ export const RulesCanvas = ({ rules, selectedRuleId, setSelectedRuleId, addNewRu
         },
         draggable: false, // Disable dragging on individual nodes
       },
-    ],
-    [rules, selectedRuleId, addNewRule]
-  );
+    ];
+  }, [rules, selectedRuleId, addNewRule, deleteRule]);
 
   const edges: Edge[] = useMemo(() => {
     const result: Edge[] = [];
@@ -131,4 +159,3 @@ export const RulesCanvas = ({ rules, selectedRuleId, setSelectedRuleId, addNewRu
     </>
   );
 };
-
