@@ -130,7 +130,7 @@ export const RulesCanvas = ({
 
   return (
     <>
-      <div style={{ height: "100vh", width: "100vw" }}>
+      <div className="h-full w-full">
         {selectedRuleId && (
           <div className="absolute top-4 left-4 z-10 bg-white p-2 border border-gray-300 rounded shadow">
             Selected: {selectedRuleId}
