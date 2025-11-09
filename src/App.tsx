@@ -18,14 +18,16 @@ type Rule = {
   action: "allow" | "block";
 };
 
-type RuleNode = Node<Rule, "rule">;
+type RuleNodeComponent = Node<Rule, "rule">;
+type NewRuleNodeComponent = Node<{ onClick?: () => void }, "newRuleButton">;
+type AppNode = RuleNodeComponent | NewRuleNodeComponent;
 
 const nodeTypes = {
-  rule: RuleNode,
-  // newRuleButton: NewRuleButtonNode,
+  rule: RuleNodeComponent,
+  newRuleButton: NewRuleNodeComponent,
 };
 
-function RuleNode(props: NodeProps<RuleNode>) {
+function RuleNodeComponent(props: NodeProps<RuleNodeComponent>) {
   return (
     <div
       className={`p-2 border-2 ${
@@ -44,23 +46,54 @@ function RuleNode(props: NodeProps<RuleNode>) {
   );
 }
 
-// Rules tab
-const RulesEditor = (props: {
+function NewRuleNodeComponent(props: NodeProps<NewRuleNodeComponent>) {
+  return (
+    <>
+      <Handle type="target" position={Position.Top} />
+      <button 
+        className="focus:outline-none focus:ring-0 border-none"
+        onClick={() => {
+          props.data.onClick?.();
+        }}
+      >
+        New Rule
+      </button>
+    </>
+  );
+}
+
+type RulesEditorProps = {
   rules: Rule[];
   selectedRuleId: string | null;
   setSelectedRuleId: (id: string | null) => void;
-}) => {
-  const nodes: RuleNode[] = useMemo(
-    () =>
-      props.rules.map((rule, index) => ({
+  addNewRule: () => void;
+};
+
+// Rules tab
+const RulesEditor = ({ rules, selectedRuleId, setSelectedRuleId, addNewRule }: RulesEditorProps) => {
+
+  const nodes: AppNode[] = useMemo(
+    () => [
+      ...rules.map((rule, index) => ({
         id: rule.id,
         position: { x: 0, y: index * 150 },
         data: rule,
-        type: "rule",
-        selected: rule.id === props.selectedRuleId,
+        type: "rule" as const,
+        selected: rule.id === selectedRuleId,
         draggable: false, // Disable dragging on individual nodes
       })),
-    [props.rules, props.selectedRuleId]
+      {
+        id: "newRuleButton",
+        position: { x: 0, y: rules.length * 150 },
+        type: "newRuleButton" as const,
+        selected: false,
+        data: {
+          onClick: addNewRule,
+        },
+        draggable: false, // Disable dragging on individual nodes
+      },
+    ],
+    [rules, selectedRuleId, addNewRule]
   );
 
   const edges: Edge[] = useMemo(() => {
@@ -78,9 +111,9 @@ const RulesEditor = (props: {
   return (
     <>
       <div style={{ height: "100vh", width: "100vw" }}>
-        {props.selectedRuleId && (
+        {selectedRuleId && (
           <div className="absolute top-4 left-4 z-10 bg-white p-2 border border-gray-300 rounded shadow">
-            Selected: {props.selectedRuleId}
+            Selected: {selectedRuleId}
           </div>
         )}
         <ReactFlow
@@ -91,10 +124,12 @@ const RulesEditor = (props: {
           nodesConnectable={false} // Disable edge connections (optional)
           fitView
           onNodeClick={(_event, node) => {
-            props.setSelectedRuleId(node.id);
+            if (node.type === "rule") {
+              setSelectedRuleId(node.id);
+            }
           }}
           onPaneClick={() => {
-            props.setSelectedRuleId(null);
+            setSelectedRuleId(null);
           }}
         >
           <Background />
@@ -105,21 +140,38 @@ const RulesEditor = (props: {
   );
 };
 
+const generateRuleId = () => {
+  return `r${Math.random().toString(36).substring(2, 15)}`;
+};
+
+const initialRules: Rule[] = [
+  {
+    id: generateRuleId(),
+    expression: "bot == true",
+    action: "allow",
+  },
+  {
+    id: generateRuleId(),
+    expression: 'country == "china"',
+    action: "allow",
+  },
+];
+
 const App = () => {
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+  const [rules, setRules] = useState<Rule[]>(initialRules);
 
-  const rules: Rule[] = [
-    {
-      id: "r1",
-      expression: "bot == true",
-      action: "allow",
-    },
-    {
-      id: "r2",
-      expression: 'country == "china"',
-      action: "allow",
-    },
-  ];
+  const addNewRule = () => {
+    setRules([
+      ...rules,
+      {
+        id: generateRuleId(),
+        expression: "bot == true",
+        action: "block",
+      },
+    ]);
+  };
+
 
   return (
     <div>
@@ -127,6 +179,7 @@ const App = () => {
         rules={rules}
         selectedRuleId={selectedRuleId}
         setSelectedRuleId={setSelectedRuleId}
+        addNewRule={addNewRule}
       />
     </div>
   );
