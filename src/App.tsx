@@ -10,12 +10,9 @@ import {
   Position,
 } from "@xyflow/react";
 import {
-  applyNodeChanges,
-  applyEdgeChanges,
   type Node,
   type Edge,
-  type OnNodesChange,
-  type OnEdgesChange,
+
 } from "@xyflow/react";
 import { useCallback, useState } from "react";
 
@@ -25,39 +22,13 @@ type Rule = {
   action: "allow" | "block";
 };
 
-const rules: Rule[] = [
-  {
-    id: "r1",
-    expression: "bot == true",
-    action: "allow",
-  },
-  {
-    id: "r2",
-    expression: 'country == "china"',
-    action: "allow",
-  },
-];
+
 
 type RuleNode = Node<Rule, "rule">;
 
 type AppNode = RuleNode;
 
-const initialNodes: RuleNode[] = rules.map((rule, index) => ({
-  id: rule.id,
-  position: { x: index * 100, y: index * 100 },
-  data: rule,
-  type: "rule",
-}));
 
-const initialEdges: Edge[] = [];
-for (let i = 0; i < initialNodes.length - 1; i++) {
-  initialEdges.push({
-    id: `e${i}-${i + 1}`,
-    source: initialNodes[i].id,
-    target: initialNodes[i + 1].id,
-    // label: "if not, check"
-  });
-}
 
 const nodeTypes = {
   rule: RuleNode,
@@ -66,12 +37,12 @@ const nodeTypes = {
 
 function RuleNode(props: NodeProps<RuleNode>) {
   const isSelected = props.selected;
-  
+
   return (
-    <div 
+    <div
       className={`p-2 border-2 ${
-        isSelected 
-          ? "bg-blue-100 border-blue-500 shadow-lg" 
+        isSelected
+          ? "bg-blue-100 border-blue-500 shadow-lg"
           : "bg-white border-black"
       }`}
     >
@@ -85,28 +56,48 @@ function RuleNode(props: NodeProps<RuleNode>) {
   );
 }
 
+// Rules tab
+const RulesEditor = (props: { rules: Rule[] }) => {
+  // const [nodes, setNodes] = useState(initialNodes);
+  // const [edges, setEdges] = useState(initialEdges);
 
-const App = () => {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+  
 
-  const onNodesChange: OnNodesChange<AppNode> = useCallback(
-    (changes) =>
-      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    []
-  );
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) =>
-      setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    []
-  );
+  const nodes: RuleNode[] = props.rules.map((rule, index) => ({
+    id: rule.id,
+    position: { x: index, y: index * 150 },
+    data: rule,
+    type: "rule",
+    selected: rule.id === selectedRuleId,
+  }));
+
+  const edges: Edge[] = [];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    edges.push({
+      id: `e${i}-${i + 1}`,
+      source: nodes[i].id,
+      target: nodes[i + 1].id,
+    });
+  }
+
+
+  // const onNodesChange: OnNodesChange<AppNode> = useCallback(
+  //   (changes) =>
+  //     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
+  //   []
+  // );
+  // const onEdgesChange: OnEdgesChange = useCallback(
+  //   (changes) =>
+  //     setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
+  //   []
+  // );
 
   const onSelectionChange = useCallback(
     (params: { nodes: AppNode[]; edges: Edge[] }) => {
       // Track which node is selected (if any)
       const selectedNode = params.nodes.find((node) => node.selected);
-      setSelectedNodeId(selectedNode?.id ?? null);
+      setSelectedRuleId(selectedNode?.id ?? null);
     },
     []
   );
@@ -114,25 +105,48 @@ const App = () => {
   return (
     <>
       <div style={{ height: "100vh", width: "100vw" }}>
-        {selectedNodeId && (
+        {selectedRuleId && (
           <div className="absolute top-4 left-4 z-10 bg-white p-2 border border-gray-300 rounded shadow">
-            Selected: {selectedNodeId}
+            Selected: {selectedRuleId}
           </div>
         )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          // onNodesChange={onNodesChange}
+          // onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
           nodeTypes={nodeTypes}
           fitView
+          onNodeClick={(_event, node) => setSelectedRuleId(node.id)}
         >
           <Background />
           <Controls />
         </ReactFlow>
       </div>
     </>
+  );
+};
+
+const App = () => {
+
+  const rules: Rule[] = [
+    {
+      id: "r1",
+      expression: "bot == true",
+      action: "allow",
+    },
+    {
+      id: "r2",
+      expression: 'country == "china"',
+      action: "allow",
+    },
+  ];
+
+  return (
+    <div>
+      <RulesEditor rules={rules} />
+    </div>
   );
 };
 
