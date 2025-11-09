@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import "./App.css";
 import "@xyflow/react/dist/style.css";
-import { ReactFlow, Background, Controls } from "@xyflow/react";
+import { ReactFlow, Background, Controls, type NodeProps } from "@xyflow/react";
 import {
   addEdge,
   applyNodeChanges,
@@ -57,6 +57,20 @@ for (let i = 0; i < initialNodes.length - 1; i++) {
   });
 }
 
+const nodeTypes = {
+  rule: RuleNode,
+  // newRuleButton: NewRuleButtonNode,
+};
+
+function RuleNode(props: NodeProps<RuleNode>) {
+  return <div className="bg-white p-2 rounded-md">
+    <b>IF</b>
+    <p>{props.data.expression}</p>
+    <b>THEN</b>
+    <p>{props.data.action}</p>
+    </div>;
+}
+
 const App = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -81,6 +95,7 @@ const App = () => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
         >
           <Background />
           <Controls />
