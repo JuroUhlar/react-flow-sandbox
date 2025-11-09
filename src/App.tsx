@@ -10,7 +10,7 @@ import {
   Position,
 } from "@xyflow/react";
 import { type Node, type Edge } from "@xyflow/react";
-import { useCallback, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 type Rule = {
   id: string;
@@ -19,7 +19,6 @@ type Rule = {
 };
 
 type RuleNode = Node<Rule, "rule">;
-type AppNode = RuleNode;
 
 const nodeTypes = {
   rule: RuleNode,
@@ -46,9 +45,11 @@ function RuleNode(props: NodeProps<RuleNode>) {
 }
 
 // Rules tab
-const RulesEditor = (props: { rules: Rule[] }) => {
-  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
-
+const RulesEditor = (props: {
+  rules: Rule[];
+  selectedRuleId: string | null;
+  setSelectedRuleId: (id: string | null) => void;
+}) => {
   const nodes: RuleNode[] = useMemo(
     () =>
       props.rules.map((rule, index) => ({
@@ -56,10 +57,10 @@ const RulesEditor = (props: { rules: Rule[] }) => {
         position: { x: 0, y: index * 150 },
         data: rule,
         type: "rule",
-        selected: rule.id === selectedRuleId,
+        selected: rule.id === props.selectedRuleId,
         draggable: false, // Disable dragging on individual nodes
       })),
-    [props.rules, selectedRuleId]
+    [props.rules, props.selectedRuleId]
   );
 
   const edges: Edge[] = useMemo(() => {
@@ -74,19 +75,12 @@ const RulesEditor = (props: { rules: Rule[] }) => {
     return result;
   }, [nodes]);
 
-  const handleNodeClick = useCallback(
-    (_event: React.MouseEvent, node: AppNode) => {
-      setSelectedRuleId(node.id);
-    },
-    []
-  );
-
   return (
     <>
       <div style={{ height: "100vh", width: "100vw" }}>
-        {selectedRuleId && (
+        {props.selectedRuleId && (
           <div className="absolute top-4 left-4 z-10 bg-white p-2 border border-gray-300 rounded shadow">
-            Selected: {selectedRuleId}
+            Selected: {props.selectedRuleId}
           </div>
         )}
         <ReactFlow
@@ -96,7 +90,12 @@ const RulesEditor = (props: { rules: Rule[] }) => {
           nodesDraggable={false} // Disable dragging globally
           nodesConnectable={false} // Disable edge connections (optional)
           fitView
-          onNodeClick={handleNodeClick}
+          onNodeClick={(_event, node) => {
+            props.setSelectedRuleId(node.id);
+          }}
+          onPaneClick={() => {
+            props.setSelectedRuleId(null);
+          }}
         >
           <Background />
           <Controls />
@@ -107,6 +106,8 @@ const RulesEditor = (props: { rules: Rule[] }) => {
 };
 
 const App = () => {
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+
   const rules: Rule[] = [
     {
       id: "r1",
@@ -122,7 +123,11 @@ const App = () => {
 
   return (
     <div>
-      <RulesEditor rules={rules} />
+      <RulesEditor
+        rules={rules}
+        selectedRuleId={selectedRuleId}
+        setSelectedRuleId={setSelectedRuleId}
+      />
     </div>
   );
 };
