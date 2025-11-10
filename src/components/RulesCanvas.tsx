@@ -90,28 +90,32 @@ export const RulesCanvas = ({
   deleteRule,
 }: RulesEditorProps) => {
   const nodes: AppNode[] = useMemo(() => {
-    return [
-      ...rules.map((rule, index) => ({
-        id: rule.id,
-        position: { x: 0, y: index * 250 },
-        data: {
-          ...rule,
-          deleteRule: () => deleteRule(rule.id),
-        },
-        type: "rule" as const,
-        selected: rule.id === selectedRuleId,
-        draggable: false, // Disable dragging on individual nodes
-      })),
-      {
-        id: "newRuleButton",
-        position: { x: 0, y: rules.length * 250 },
-        type: "newRuleButton" as const,
-        selected: false,
-        data: {
-          onClick: addNewRule,
-        },
-        draggable: false, // Disable dragging on individual nodes
+    const ruleNodes = rules.map((rule, index) => ({
+      id: rule.id,
+      position: { x: 0, y: index * 250 },
+      data: {
+        ...rule,
+        deleteRule: () => deleteRule(rule.id),
       },
+      type: "rule" as const,
+      selected: rule.id === selectedRuleId,
+      draggable: false, // Disable dragging on individual nodes
+    })); 
+
+    const newRuleButtonNode = {
+      id: "newRuleButton",
+      position: { x: 0, y: rules.length * 250 },
+      type: "newRuleButton" as const,
+      selected: false,
+      data: {
+        onClick: addNewRule,
+      },
+      draggable: false, // Disable dragging on individual nodes
+    };
+
+    return [
+      ...ruleNodes,
+      newRuleButtonNode,
     ];
   }, [rules, selectedRuleId, addNewRule, deleteRule]);
 
