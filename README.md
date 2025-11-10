@@ -1,11 +1,15 @@
 
-# Sandbox for prototyping stuff with React Flow 
+# Sandbox for prototyping stuff with [React Flow ](https://reactflow.dev/)
 
-* https://reactflow.dev/
-
-# Demo 
+## Demo 
 
 https://react-flow-sandbox.pages.dev/
+
+## Files to pay attention to
+
+- [`src/components/RulesTab.tsx`](src/components/RulesTab.tsx) 
+- [`src/components/RulesCanvas.tsx`](src/components/RulesCanvas.tsx) 
+- [`src/components/RuleForm.tsx`](src/components/RuleForm.tsx) 
 
 ## React + TypeScript + Vite
 
