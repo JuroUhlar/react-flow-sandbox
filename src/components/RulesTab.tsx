@@ -21,7 +21,7 @@ export type Rule = {
     },
     {
       id: generateRuleId(),
-      expression: 'country == "china"',
+      expression: 'country == "north korea"',
       action: "allow",
     },
   ];
